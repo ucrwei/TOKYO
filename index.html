@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2026 東京追星之旅</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-color: #FFF5F3;
+      --primary-color: #FFC0B5;
+      --accent-color: #FF5FA2;
+      --text-main: #4A4A4A;
+      --text-light: #888888;
+      --card-bg: #FFFFFF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+    }
+
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      background-image: radial-gradient(#FFDED8 1px, transparent 1px);
+      background-size: 20px 20px;
+      min-height: 100vh;
+      position: relative;
+      padding-bottom: 90px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
+
+    header {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 0 0 25px 25px;
+      box-shadow: 0 4px 15px rgba(255, 192, 181, 0.3);
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 1.4rem; color: var(--accent-color); font-weight: 700; }
+    header p { font-size: 0.9rem; color: var(--text-light); margin-top: 5px; }
+
+    .content-section { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+    .content-section.active { display: block; }
+
+    .day-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      border-left: 5px solid var(--primary-color);
+    }
+    
+    /* 下拉選單樣式 */
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      border-bottom: 2px dashed var(--primary-color);
+      padding-bottom: 10px;
+      cursor: pointer;
+    }
+    .day-header h2 { font-size: 1.2rem; }
+    .toggle-icon {
+      color: var(--primary-color);
+      transition: transform 0.3s ease;
+    }
+    .toggle-icon.rotate {
+      transform: rotate(180deg);
+    }
+    .day-content {
+      display: none;
+      margin-top: 15px;
+      animation: fadeIn 0.3s ease;
+    }
+    .day-content.show {
+      display: block;
+    }
+    
+    .spot-card {
+      background: #FAFAFA;
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .spot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .spot-type {
+      font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; background: #eee; font-weight: bold;
+    }
+    .spot-type.food { background: #FFE4B5; color: #D2691E; }
+    .spot-type.event { background: #FFC0CB; color: var(--accent-color); }
+    .spot-type.shop { background: #E6E6FA; color: #4B0082; }
+    .spot-type.sight { background: #E0FFFF; color: #008B8B; }
+    .spot-type.transit { background: #D3D3D3; color: #4A4A4A; }
+    .spot-type.guide { background: #FFFACD; color: #B8860B; }
+    
+    .spot-name { font-size: 1.1rem; font-weight: 700; }
+    .spot-time { font-size: 0.85rem; color: var(--accent-color); font-weight: 700; }
+    
+    .tags { display: flex; gap: 6px; margin: 8px 0; }
+    .tag { font-size: 0.7rem; padding: 3px 6px; border-radius: 8px; color: white; }
+    .tag.must-eat { background-color: #FF8C00; }
+    .tag.must-buy { background-color: #9370DB; }
+    .tag.must-photo { background-color: var(--accent-color); }
+
+    .spot-details {
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .outfit-toggle {
+      text-align: center; background: #FFF0ED; padding: 10px; border-radius: 15px; cursor: pointer;
+      color: var(--accent-color); font-weight: 700; font-size: 0.9rem; transition: 0.2s;
+      margin-top: 10px;
+    }
+    .outfit-toggle:active { transform: scale(0.98); }
+    .outfit-content {
+      display: none; padding: 15px; background: white; border-radius: 0 0 15px 15px;
+      border: 1px solid #FFF0ED; font-size: 0.85rem; margin-top: -5px;
+    }
+
+    .info-card {
+      background: linear-gradient(135deg, var(--accent-color), #FF8DBE);
+      color: white; border-radius: 15px; padding: 15px; margin-bottom: 20px;
+    }
+    .info-card h3 { font-size: 1rem; margin-bottom: 5px; }
+    .info-card p { font-size: 0.85rem; opacity: 0.9; line-height: 1.5; }
+
+    /* 日本氣象廳卡片 */
+    .jma-card {
+      margin-top: 20px;
+      padding: 25px 20px;
+      background: #FAFAFA;
+      border-radius: 15px;
+      border: 1px solid #eee;
+      text-align: center;
+    }
+    .jma-card i.fa-sun {
+      font-size: 2.5rem;
+      color: #FFA500;
+      margin-bottom: 10px;
+    }
+    .jma-btn {
+      display: block;
+      background: var(--primary-color);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 15px;
+      box-shadow: 0 4px 10px rgba(255, 192, 181, 0.4);
+      transition: 0.2s;
+    }
+    .jma-btn:active {
+      transform: scale(0.98);
+    }
+
+    .bottom-nav {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 400px;
+      background: var(--card-bg); border-radius: 30px;
+      display: flex; justify-content: space-around; padding: 10px 5px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      color: var(--text-light); text-decoration: none; font-size: 0.75rem; width: 33%;
+      cursor: pointer; transition: 0.3s;
+    }
+    .nav-item i { font-size: 1.2rem; transition: 0.3s; }
+    .nav-item.active { color: var(--accent-color); font-weight: 700; }
+    .nav-item.active i { transform: translateY(-3px); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <header>
+      <h1>🌸 2026 東京追星之旅</h1>
+      <p>4/26 (日) - 4/30 (四) ｜ 5天4夜</p>
+    </header>
+
+    <main id="tab-itinerary" class="content-section active">
+      
+      <div class="info-card">
+        <h3>✈️ 航班與交通摘要</h3>
+        <p>高鐵：台中 ➔ 桃園 (22:59 - 23:38)<br>
+        去程 4/26：TPE (02:40) ➔ NRT T3 (07:00)<br>座位: 10A, 10B | 托運: 25kg<br>
+        回程 4/30：NRT T3 (22:40) ➔ TPE (01:30)<br>座位: 10F, 10E | 托運: 40kg</p>
+      </div>
+
+      <div class="day-card">
+        <div class="day-header" onclick="toggleDay('day1-content', 'day1-icon')">
+          <div>
+            <h2>DAY 1 ｜ 4/26 (日)</h2>
+            <span style="color: var(--text-light); font-size:0.9rem;">抵達與演唱會</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon rotate" id="day1-icon"></i>
+        </div>
+        
+        <div id="day1-content" class="day-content show">
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type transit">交通</span>
+              <span class="spot-time">07:00 - 10:23</span>
+            </div>
+            <div class="spot-name">NRT入境 ➔ 上野 ➔ 六本木雷姆飯店</div>
+            <p style="font-size:0.85rem; margin-top:5px;">搭乘 8:33 或 9:42 的 Skyliner。先至飯店 Check-in 放行李。</p>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type food">食物</span>
+              <span class="spot-time">11:00</span>
+            </div>
+            <div class="spot-name">原宿吃早午餐</div>
+            <p style="font-size:0.85rem; font-weight:bold;">THE ROASTERY by NOZY COFFEE & I'M DONUT</p>
+            <div class="tags">
+              <span class="tag must-eat">必吃甜甜圈</span>
+              <span class="tag must-photo">網美咖啡</span>
+            </div>
+            <div class="spot-details">
+              <p>💡 拍照小技巧：甜甜圈拿在臉旁微遮臉，背景帶入表參道街景。</p>
+            </div>
+          </div>
+          
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type shop">購物</span>
+              <span class="spot-time">下午</span>
+            </div>
+            <div class="spot-name">澀谷逛街 (PARCO BAPE)</div>
+            <p style="font-size:0.85rem; margin-top:5px;">14:00 回飯店稍作休息，準備戰鬥狀態！</p>
+          </div>
+
+          <div class="spot-card" style="border: 2px solid var(--accent-color);">
+            <div class="spot-header">
+              <span class="spot-type event">活動</span>
+              <span class="spot-time">16:00 - 21:00</span>
+            </div>
+            <div class="spot-name">👑 TWICE 演唱會 (國立競技場)</div>
+            <div class="tags">
+              <span class="tag must-photo">帶手燈！</span>
+            </div>
+            <div class="spot-details">
+              <p>16:00 出發，17:00 準時開唱！</p>
+              <p style="margin-top:5px; color:var(--text-light);">21:00 結束後去吃 AFURI 拉麵 (六本木店)</p>
+            </div>
+          </div>
+
+          <div class="outfit-toggle" onclick="toggleOutfit('outfit-day1')">
+            <i class="fas fa-tshirt"></i> 顯示今日建議穿著 ▾
+          </div>
+          <div id="outfit-day1" class="outfit-content">
+            <strong>演唱會戰袍！</strong><br>
+            傍晚看演唱會可能會涼，建議帶一件輕薄防風外套。以杏色系搭配 TWICE 應援色配件為主。
+          </div>
+        </div>
+      </div>
+
+      <div class="day-card">
+        <div class="day-header" onclick="toggleDay('day2-content', 'day2-icon')">
+          <div>
+            <h2>DAY 2 ｜ 4/27 (一)</h2>
+            <span style="color: var(--text-light); font-size:0.9rem;">吉伊卡娃與購物日</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon" id="day2-icon"></i>
+        </div>
+
+        <div id="day2-content" class="day-content">
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type food">食物</span>
+              <span class="spot-time">11:00</span>
+            </div>
+            <div class="spot-name">人形町今半 (池袋店)</div>
+            <div class="tags"><span class="tag must-eat">頂級壽喜燒</span></div>
+            <div class="spot-details">
+              <p>09:00 先退房。午餐吃和牛壽喜燒，補充體力！</p>
+            </div>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type shop">購物</span>
+              <span class="spot-time">14:20</span>
+            </div>
+            <div class="spot-name">ちいかわ 吉伊卡娃樂園</div>
+            <div class="tags"><span class="tag must-buy">爆買預警</span></div>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type shop">購物</span>
+              <span class="spot-time">傍晚</span>
+            </div>
+            <div class="spot-name">新宿逛街 (GOYARD, BIC CAMERA, REFA)</div>
+            <p style="font-size:0.85rem; margin-top:5px;">17:30 晚餐吃「牛舌檸檬」。逛完記得買大谷翔平優格當隔天早餐/晚餐！</p>
+          </div>
+          
+          <div class="outfit-toggle" onclick="toggleOutfit('outfit-day2')">
+            <i class="fas fa-tshirt"></i> 顯示今日建議穿著 ▾
+          </div>
+          <div id="outfit-day2" class="outfit-content">
+            <strong>逛街舒適風</strong><br>
+            今天會走非常多路，務必穿最舒服的平底鞋/球鞋。雙手要騰出來提戰利品，建議背斜背包！
+          </div>
+        </div>
+      </div>
+
+      <div class="day-card">
+        <div class="day-header" onclick="toggleDay('day3-content', 'day3-icon')">
+          <div>
+            <h2>DAY 3 ｜ 4/28 (二)</h2>
+            <span style="color: var(--text-light); font-size:0.9rem;">迪士尼海洋作戰</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon" id="day3-icon"></i>
+        </div>
+
+        <div id="day3-content" class="day-content">
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type transit">交通</span>
+              <span class="spot-time">05:24 - 06:24</span>
+            </div>
+            <div class="spot-name">搭乘地鐵前往迪士尼海洋</div>
+            <div class="tags"><span class="tag must-photo">早起第一波</span></div>
+            <div class="spot-details">
+              <p>提早出發排隊入園！（吃昨天買的大谷翔平優格墊肚子）</p>
+              <p style="color:var(--text-light); margin-top:5px;">💡 路線：六本木 ➔(日比谷線)➔ 八丁堀 ➔(京葉線)➔ 舞濱</p>
+            </div>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type event">活動</span>
+              <span class="spot-time">全天</span>
+            </div>
+            <div class="spot-name">東京迪士尼海洋</div>
+            <p style="font-size:0.85rem; margin-top:5px;">盡情享受魔法世界！晚餐預計回飯店或隨意吃泡麵休息。</p>
+          </div>
+
+          <div class="outfit-toggle" onclick="toggleOutfit('outfit-day3')">
+            <i class="fas fa-tshirt"></i> 顯示今日建議穿著 ▾
+          </div>
+          <div id="outfit-day3" class="outfit-content">
+            <strong>海洋主題穿搭</strong><br>
+            海邊風大會冷，一定要帶保暖外套！鞋子必須是走一整天也不痛的神鞋。
+          </div>
+        </div>
+      </div>
+
+      <div class="day-card">
+        <div class="day-header" onclick="toggleDay('day4-content', 'day4-icon')">
+          <div>
+            <h2>DAY 4 ｜ 4/29 (三)</h2>
+            <span style="color: var(--text-light); font-size:0.9rem;">質感都會與夜生活</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon" id="day4-icon"></i>
+        </div>
+
+        <div id="day4-content" class="day-content">
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type food">食物</span>
+              <span class="spot-time">09:15</span>
+            </div>
+            <div class="spot-name">BALCONY BY 6TH</div>
+            <div class="tags"><span class="tag must-eat">質感早午餐</span></div>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type sight">景點</span>
+              <span class="spot-time">下午</span>
+            </div>
+            <div class="spot-name">麻布台之丘 ➔ 澀谷逛街</div>
+            <p style="font-size:0.85rem; margin-top:5px;">逛街補齊清單，19:15 吃天婦羅晚餐。</p>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type event">活動</span>
+              <span class="spot-time">20:15 - 22:15</span>
+            </div>
+            <div class="spot-name">superspark</div>
+            <div class="spot-details">
+              <p style="color:var(--text-light);">結束後 22:45 續攤吃宵夜 MEAT MAN！</p>
+            </div>
+          </div>
+
+          <div class="outfit-toggle" onclick="toggleOutfit('outfit-day4')">
+            <i class="fas fa-tshirt"></i> 顯示今日建議穿著 ▾
+          </div>
+          <div id="outfit-day4" class="outfit-content">
+            <strong>微法式優雅風</strong><br>
+            去麻布台之丘和高質感餐廳，可以穿上帶點法式慵懶風格的洋裝或襯衫。
+          </div>
+        </div>
+      </div>
+
+      <div class="day-card">
+        <div class="day-header" onclick="toggleDay('day5-content', 'day5-icon')">
+          <div>
+            <h2>DAY 5 ｜ 4/30 (四)</h2>
+            <span style="color: var(--text-light); font-size:0.9rem;">海鮮早市與歸途</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon" id="day5-icon"></i>
+        </div>
+
+        <div id="day5-content" class="day-content">
+          <div class="info-card" style="background: linear-gradient(135deg, #FF8C00, #FFA500); margin-bottom: 15px;">
+            <h3 style="font-size: 0.95rem;">🧳 09:00 前：行李特工交付</h3>
+            <p style="font-size: 0.8rem;">輕鬆去逛街！手提行李 14kg + 7kg，托運行李 40kg 額度，買好買滿！</p>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type food">食物</span>
+              <span class="spot-time">11:00</span>
+            </div>
+            <div class="spot-name">豐洲市場 ➔ 台場</div>
+            <p style="font-size:0.85rem; margin-top:5px;">把握最後時間吃海鮮、看台場風景。</p>
+          </div>
+
+          <div class="spot-card">
+            <div class="spot-header">
+              <span class="spot-type transit">交通</span>
+              <span class="spot-time">19:00</span>
+            </div>
+            <div class="spot-name">搭乘 SKYLINER 往機場</div>
+            <div class="spot-details">
+              <p>前往 NRT 3號航站樓，準備搭乘 22:40 的班機回 TPE。</p>
+            </div>
+          </div>
+
+          <div class="outfit-toggle" onclick="toggleOutfit('outfit-day5')">
+            <i class="fas fa-tshirt"></i> 顯示今日建議穿著 ▾
+          </div>
+          <div id="outfit-day5" class="outfit-content">
+            <strong>機場輕便風</strong><br>
+            搭紅眼班機回台，記得穿寬鬆好活動的衣服，可帶件薄長袖在飛機上禦寒。
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <main id="tab-guide" class="content-section">
+      <div class="day-card" style="margin-bottom: 15px;">
+        <h2>📑 實用指南與攻略</h2>
+      </div>
+
+      <div class="spot-card" style="border: 2px solid var(--accent-color); padding-bottom: 10px;">
+        <div class="spot-header" onclick="toggleDay('guide1-content', 'guide1-icon')" style="cursor: pointer; justify-content: space-between; margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="spot-type event">攻略</span>
+            <span class="spot-name" style="font-size: 1rem;">🌋 迪士尼海洋 搶攻路線</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon rotate" id="guide1-icon"></i>
+        </div>
+        
+        <div id="guide1-content" class="day-content show" style="margin-top: 10px;">
+          <div class="spot-details" style="font-size: 0.9rem; line-height: 1.8; margin-top: 0; padding-top: 10px; border-top: 1px solid #eee;">
+            <strong style="color: var(--accent-color);">STEP 1 🏃‍♀️ 入園往右衝</strong><br>
+            <span style="color: var(--text-light);">📍 排隊：</span>翱翔：夢幻奇航<br>
+            <span style="color: var(--text-light);">📱 手機：</span>買 DPA ➔ 冰雪奇緣 (下午場)<br>
+            <span style="color: var(--text-light);">📱 手機：</span>搶港灣表演
+            <hr style="margin:10px 0; border:0; border-top:1px dashed #ddd;">
+            
+            <strong style="color: var(--accent-color);">STEP 2 🎯 經典必玩</strong><br>
+            <span style="color: var(--text-light);">📍 排隊：</span>玩具總動員 ➔ 驚魂古塔<br>
+            <span style="color: var(--text-light);">📱 手機：</span>買 DPA ➔ 樂佩公主 (下午場)
+            <hr style="margin:10px 0; border:0; border-top:1px dashed #ddd;">
+            
+            <strong style="color: var(--accent-color);">STEP 3 🧚 夜間大秀</strong><br>
+            <span style="color: var(--text-light);">📍 排隊：</span>小飛俠<br>
+            <span style="color: var(--text-light);">📱 手機：</span>買 堅信！～夢想之海～ DPA
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-card" style="padding-bottom: 10px;">
+        <div class="spot-header" onclick="toggleDay('guide2-content', 'guide2-icon')" style="cursor: pointer; justify-content: space-between; margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="spot-type transit">交通</span>
+            <span class="spot-name" style="font-size: 1rem;">台灣出發交通 (4/25)</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon" id="guide2-icon"></i>
+        </div>
+        
+        <div id="guide2-content" class="day-content" style="margin-top: 10px;">
+          <div class="spot-details" style="margin-top: 0; padding-top: 10px; border-top: 1px solid #eee;">
+            <strong>🚄 高鐵 (台中 ➔ 桃園)</strong>
+            <p style="color: var(--text-light); margin-bottom: 10px;">班次：22:59 - 23:38 ｜ 票價：$696</p>
+            
+            <strong>🚌 統聯客運 (桃機 ➔ 台中) 回程</strong>
+            <p style="color: var(--text-light); margin-bottom: 5px;">班次：02:35、03:15、03:45</p>
+            <p style="color: var(--text-light); font-size: 0.8rem;">
+              📍 (一航) B1樓客運巴士候車區<br>
+              📍 (二航) 1樓入境大廳客運巴士轉運區
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-card" style="padding-bottom: 10px;">
+        <div class="spot-header" onclick="toggleDay('guide3-content', 'guide3-icon')" style="cursor: pointer; justify-content: space-between; margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="spot-type guide">乘車</span>
+            <span class="spot-name" style="font-size: 1rem;">地鐵轉乘：六本木 ➔ 迪士尼</span>
+          </div>
+          <i class="fas fa-chevron-down toggle-icon" id="guide3-icon"></i>
+        </div>
+        
+        <div id="guide3-content" class="day-content" style="margin-top: 10px;">
+          <div class="spot-details" style="display: flex; flex-direction: column; gap: 8px; margin-top: 0; padding-top: 10px; border-top: 1px solid #eee;">
+            <div style="background: #f5f5f5; padding: 10px; border-radius: 8px;">
+              <strong style="color: #696969;">出發：六本木</strong><br>
+              🚇 搭乘 <strong>日比谷線</strong> (往 東武動物公園)<br>
+              ⬇️ (至 八丁堀 站下車轉乘)
+            </div>
+            <div style="background: #f5f5f5; padding: 10px; border-radius: 8px;">
+              <strong style="color: #696969;">轉乘：八丁堀</strong><br>
+              🚇 搭乘 <strong>京葉線</strong> (往 蘇我)<br>
+              ⬇️ (至 舞濱 站下車)
+            </div>
+            <div style="text-align: center; font-weight: bold; color: var(--accent-color); margin-top: 5px;">
+              🌋 抵達 東京迪士尼度假區！
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <main id="tab-weather" class="content-section">
+      <div class="day-card" style="text-align: center;">
+        <h2>⛅ 東京天氣預報</h2>
+        <p style="font-size:0.85rem; color:var(--text-light); margin-top: 10px;">為確保獲得最準確的氣象資訊，請直接參考官方預報。</p>
+        
+        <div class="jma-card">
+          <i class="fas fa-sun"></i>
+          <h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 5px;">日本氣象廳 (JMA)</h3>
+          <p style="font-size:0.8rem; color:var(--text-light); margin-bottom: 15px;">提供東京一週內天氣與溫差</p>
+          
+          <a href="https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=130010&lang=cn_zt" target="_blank" class="jma-btn">
+            <i class="fas fa-external-link-alt"></i> 前往查看最新天氣
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('tab-itinerary', this)">
+        <i class="fas fa-calendar-alt"></i>
+        <span>行程</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('tab-guide', this)">
+        <i class="fas fa-book"></i>
+        <span>指南</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('tab-weather', this)">
+        <i class="fas fa-cloud-sun"></i>
+        <span>天氣</span>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    // Tab 切換
+    function switchTab(tabId, element) {
+      document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      element.classList.add('active');
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 穿搭展開/收合
+    function toggleOutfit(id) {
+      const content = document.getElementById(id);
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    }
+
+    // 行程/指南 下拉選單 (Accordion) 共用邏輯
+    function toggleDay(contentId, iconId) {
+      const content = document.getElementById(contentId);
+      const icon = document.getElementById(iconId);
+      
+      if (content.classList.contains('show')) {
+        content.classList.remove('show');
+        icon.classList.remove('rotate');
+      } else {
+        content.classList.add('show');
+        icon.classList.add('rotate');
+      }
+    }
+  </script>
+</body>
+</html>
